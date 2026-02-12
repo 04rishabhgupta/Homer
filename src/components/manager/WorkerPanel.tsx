@@ -291,13 +291,9 @@ export const WorkerPanel = ({
     });
   };
 
-  // Helper to check if a device is online based on timeout setting
+  // A device is online if we have coordinates for it
   const isDeviceOnline = (location: GPSLocation | undefined): boolean => {
-    if (!location) return false;
-    const lastReading = new Date(location.timestamp).getTime();
-    const now = Date.now();
-    const timeoutMs = deviceTimeoutSeconds * 1000;
-    return (now - lastReading) < timeoutMs;
+    return !!location;
   };
 
   // Separate workers into online and offline based on timeout
