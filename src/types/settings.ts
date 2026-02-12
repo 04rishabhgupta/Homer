@@ -14,7 +14,7 @@ export interface ManagerSettings {
 }
 
 export const DEFAULT_SETTINGS: ManagerSettings = {
-  deviceTimeoutSeconds: 30,
+  deviceTimeoutSeconds: 60,
   outOfZoneAlertDelaySeconds: 30,
   breakDurationValue: 15,
   breakDurationUnit: 'minutes',
