@@ -7,6 +7,9 @@ export interface GPSLocation {
   ay: number;
   az: number;
   timestamp: string;
+  locationSource?: 'GPS' | 'PEER' | 'NONE';
+  peerDistance?: number;
+  pairId?: number;
 }
 
 export interface Geofence {

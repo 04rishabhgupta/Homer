@@ -4,6 +4,7 @@ import {
   useJsApiLoader,
   Marker,
   Polygon,
+  Polyline,
   DrawingManager,
   InfoWindow,
 } from '@react-google-maps/api';
@@ -295,6 +296,72 @@ export const ManagerMap = ({
         );
       })}
 
+      {/* BLE Connection Lines */}
+      {(() => {
+        const blePairs: { from: GPSLocation; to: GPSLocation; distance: number }[] = [];
+        const processedPairs = new Set<string>();
+
+        deviceLocations.forEach((loc, deviceId) => {
+          if (loc.locationSource === 'PEER' && loc.pairId && loc.pairId > 0) {
+            // Find the peer device by matching its numeric ID suffix
+            const peerEntry = Array.from(deviceLocations.entries()).find(([peerId]) => {
+              const numMatch = peerId.match(/(\d+)$/);
+              return numMatch && parseInt(numMatch[1]) === loc.pairId;
+            });
+
+            if (peerEntry) {
+              const pairKey = [deviceId, peerEntry[0]].sort().join('|');
+              if (!processedPairs.has(pairKey)) {
+                processedPairs.add(pairKey);
+                blePairs.push({ from: loc, to: peerEntry[1], distance: loc.peerDistance || 0 });
+              }
+            }
+          }
+        });
+
+        return blePairs.map((pair, idx) => {
+          const midLat = (pair.from.latitude + pair.to.latitude) / 2;
+          const midLng = (pair.from.longitude + pair.to.longitude) / 2;
+
+          return (
+            <span key={`ble-pair-${idx}`}>
+              <Polyline
+                path={[
+                  { lat: pair.from.latitude, lng: pair.from.longitude },
+                  { lat: pair.to.latitude, lng: pair.to.longitude },
+                ]}
+                options={{
+                  strokeColor: '#3b82f6',
+                  strokeOpacity: 0.8,
+                  strokeWeight: 2,
+                  icons: [{
+                    icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 },
+                    offset: '0',
+                    repeat: '12px',
+                  }],
+                }}
+              />
+              {pair.distance > 0 && (
+                <Marker
+                  position={{ lat: midLat, lng: midLng }}
+                  icon={{
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 0,
+                  }}
+                  label={{
+                    text: `${pair.distance.toFixed(1)}m`,
+                    color: '#3b82f6',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    className: 'ble-distance-label',
+                  }}
+                />
+              )}
+            </span>
+          );
+        });
+      })()}
+
       {/* Info Window */}
       {infoWindow && (
         <InfoWindow
@@ -329,6 +396,36 @@ export const ManagerMap = ({
                 </span>
               </div>
               
+              <div className="border-t" style={{ borderColor: '#e5e2d3' }} />
+
+              {/* Location Source */}
+              {infoWindow.location.locationSource && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium" style={{ color: '#5a6b3a' }}>Source</span>
+                  <span 
+                    className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: infoWindow.location.locationSource === 'GPS' ? '#22c55e' :
+                        infoWindow.location.locationSource === 'PEER' ? '#3b82f6' : '#ef4444',
+                      color: '#ffffff'
+                    }}
+                  >
+                    {infoWindow.location.locationSource === 'PEER' ? 'BLE Peer' : infoWindow.location.locationSource}
+                  </span>
+                </div>
+              )}
+
+              {/* BLE Peer Info */}
+              {infoWindow.location.locationSource === 'PEER' && infoWindow.location.pairId && infoWindow.location.pairId > 0 && (
+                <div>
+                  <span className="text-xs font-medium block" style={{ color: '#5a6b3a' }}>Paired Device</span>
+                  <span className="text-xs" style={{ color: '#3d4a28' }}>
+                    ID #{infoWindow.location.pairId}
+                    {infoWindow.location.peerDistance ? ` · ${infoWindow.location.peerDistance.toFixed(1)}m away` : ''}
+                  </span>
+                </div>
+              )}
+
               <div className="border-t" style={{ borderColor: '#e5e2d3' }} />
               
               <div>

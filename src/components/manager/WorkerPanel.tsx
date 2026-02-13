@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { User, MapPin, Briefcase, Clock, Navigation, AlertCircle, History, Activity, ChevronDown, ChevronRight, Cpu } from 'lucide-react';
+import { User, MapPin, Briefcase, Clock, Navigation, AlertCircle, History, Activity, ChevronDown, ChevronRight, Cpu, Satellite, Bluetooth, WifiOff } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Dialog,
@@ -345,6 +345,30 @@ export const WorkerPanel = ({
                 <Briefcase className="h-3 w-3 flex-shrink-0" />
                 {assignment.jobLabel}
               </span>
+            </div>
+          )}
+          {/* BLE Source Badge */}
+          {location?.locationSource && (
+            <div className="flex items-center gap-1.5 mt-1">
+              {location.locationSource === 'GPS' && (
+                <Badge className="text-[9px] px-1.5 py-0 h-4 bg-green-500/15 text-green-700 border-green-500/30 hover:bg-green-500/20">
+                  <Satellite className="h-2.5 w-2.5 mr-1" />
+                  GPS
+                </Badge>
+              )}
+              {location.locationSource === 'PEER' && (
+                <Badge className="text-[9px] px-1.5 py-0 h-4 bg-blue-500/15 text-blue-700 border-blue-500/30 hover:bg-blue-500/20">
+                  <Bluetooth className="h-2.5 w-2.5 mr-1" />
+                  BLE {location.peerDistance ? `· ${location.peerDistance.toFixed(1)}m` : ''}
+                  {location.pairId ? ` · #${location.pairId}` : ''}
+                </Badge>
+              )}
+              {location.locationSource === 'NONE' && (
+                <Badge className="text-[9px] px-1.5 py-0 h-4 bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20">
+                  <WifiOff className="h-2.5 w-2.5 mr-1" />
+                  No Signal
+                </Badge>
+              )}
             </div>
           )}
         </div>

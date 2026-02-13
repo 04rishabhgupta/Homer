@@ -51,6 +51,9 @@ export const useGPSData = (options: UseGPSDataOptions = {}): UseGPSDataReturn =>
           ax: parseFloat(loc.ax) || 0,
           ay: parseFloat(loc.ay) || 0,
           az: parseFloat(loc.az) || 0,
+          locationSource: loc.src || 'GPS',
+          peerDistance: parseFloat(loc.p_dist) || 0,
+          pairId: parseInt(loc.Pair_id) || 0,
         })));
         setLastUpdate(new Date());
       } else {
