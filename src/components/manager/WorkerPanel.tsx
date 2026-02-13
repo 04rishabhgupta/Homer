@@ -448,7 +448,8 @@ export const WorkerPanel = ({
   const [deviceLogOpen, setDeviceLogOpen] = useState(true);
 
   return (
-    <div className="p-3 space-y-2 h-full flex flex-col">
+    <ScrollArea className="h-full">
+    <div className="p-3 space-y-2 flex flex-col">
       {/* Online Workers Section */}
       <Collapsible open={onlineOpen} onOpenChange={setOnlineOpen}>
         <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 px-1 rounded-md hover:bg-muted/50 transition-colors">
@@ -586,5 +587,6 @@ export const WorkerPanel = ({
         />
       )}
     </div>
+    </ScrollArea>
   );
 };
