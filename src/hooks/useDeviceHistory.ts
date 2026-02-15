@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { GPSLocation } from '@/types/gps';
-import { API_ENDPOINTS } from '@/config/api';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseDeviceHistoryReturn {
   history: GPSLocation[];
@@ -20,31 +20,27 @@ export const useDeviceHistory = (): UseDeviceHistoryReturn => {
     setError(null);
     
     try {
-      const response = await fetch(API_ENDPOINTS.getDeviceHistory(deviceId), {
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Content-Type': 'application/json',
-        },
-      });
+      const { data, error: sbError } = await supabase
+        .from('sensor_readings')
+        .select('*')
+        .eq('device_id', deviceId)
+        .order('created_at', { ascending: false })
+        .limit(500);
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (sbError) {
+        throw new Error(sbError.message);
       }
       
-      const data = await response.json();
-      
-      if (data.success && Array.isArray(data.devices)) {
-        setHistory(data.devices.map((loc: any) => ({
+      if (data) {
+        setHistory(data.map((loc) => ({
           device_id: loc.device_id,
-          latitude: parseFloat(loc.lat || loc.latitude),
-          longitude: parseFloat(loc.lon || loc.longitude),
-          timestamp: loc.reading_time || loc.timestamp,
-          ax: parseFloat(loc.ax) || 0,
-          ay: parseFloat(loc.ay) || 0,
-          az: parseFloat(loc.az) || 0,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          timestamp: loc.created_at,
+          ax: loc.ax || 0,
+          ay: loc.ay || 0,
+          az: loc.az || 0,
         })));
-      } else {
-        throw new Error(data.message || 'Failed to fetch history');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');

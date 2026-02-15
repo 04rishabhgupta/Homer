@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GPSLocation } from '@/types/gps';
-import { API_ENDPOINTS } from '@/config/api';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseGPSDataOptions {
   refreshIntervalSeconds?: number;
@@ -29,35 +29,28 @@ export const useGPSData = (options: UseGPSDataOptions = {}): UseGPSDataReturn =>
     setError(null);
     
     try {
-      const response = await fetch(API_ENDPOINTS.getLocations, {
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Content-Type': 'application/json',
-        },
-      });
+      const { data, error: sbError } = await supabase
+        .from('latest_device_locations')
+        .select('*');
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (sbError) {
+        throw new Error(sbError.message);
       }
       
-      const data = await response.json();
-      
-      if (data.success && Array.isArray(data.devices)) {
-        setLocations(data.devices.map((loc: any) => ({
+      if (data) {
+        setLocations(data.map((loc) => ({
           device_id: loc.device_id,
-          latitude: parseFloat(loc.lat || loc.latitude),
-          longitude: parseFloat(loc.lon || loc.longitude),
-          timestamp: loc.reading_time || loc.timestamp,
-          ax: parseFloat(loc.ax) || 0,
-          ay: parseFloat(loc.ay) || 0,
-          az: parseFloat(loc.az) || 0,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          timestamp: loc.created_at,
+          ax: loc.ax || 0,
+          ay: loc.ay || 0,
+          az: loc.az || 0,
           locationSource: loc.src || 'GPS',
-          peerDistance: parseFloat(loc.p_dist) || 0,
-          pairId: parseInt(loc.Pair_id) || 0,
+          peerDistance: loc.p_dist || 0,
+          pairId: loc.pair_id || 0,
         })));
         setLastUpdate(new Date());
-      } else {
-        throw new Error(data.message || 'Failed to fetch locations');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');

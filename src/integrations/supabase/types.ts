@@ -7,17 +7,67 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
-  }
   public: {
     Tables: {
-      [_ in never]: never
+      sensor_readings: {
+        Row: {
+          id: number
+          device_id: string
+          latitude: number
+          longitude: number
+          ax: number | null
+          ay: number | null
+          az: number | null
+          src: string | null
+          p_dist: number | null
+          pair_id: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          device_id: string
+          latitude: number
+          longitude: number
+          ax?: number | null
+          ay?: number | null
+          az?: number | null
+          src?: string | null
+          p_dist?: number | null
+          pair_id?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          device_id?: string
+          latitude?: number
+          longitude?: number
+          ax?: number | null
+          ay?: number | null
+          az?: number | null
+          src?: string | null
+          p_dist?: number | null
+          pair_id?: number | null
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      latest_device_locations: {
+        Row: {
+          id: number
+          device_id: string
+          latitude: number
+          longitude: number
+          ax: number | null
+          ay: number | null
+          az: number | null
+          src: string | null
+          p_dist: number | null
+          pair_id: number | null
+          created_at: string
+        }
+      }
     }
     Functions: {
       [_ in never]: never
@@ -31,7 +81,7 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Database
 
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
